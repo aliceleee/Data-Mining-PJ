@@ -4,7 +4,7 @@ Code for kaggle competition: https://www.kaggle.com/c/dota-2-prediction
 
 ## First Version -- 0.614
 
-我们简单得将所有的columns作为feature，并作为一个二分类任务送给XGBoost进行分类。
+我们将所有的columns作为features，作为一个二分类任务送给XGBoost进行分类。
 
 ## Second Version -- 0.721
 
