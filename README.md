@@ -13,3 +13,7 @@ Code for kaggle competition: https://www.kaggle.com/c/dota-2-prediction
 (+6%) 为了让英雄的使用情况体现在Feature中，我们将双方的10个英雄展开到 10 * 112 (英雄个数) * 7 (英雄feature) 维度上。
 
 (+1%) 我们把交换双方后的数据也加入训练集中，使得训练数据翻倍。
+
+## Third Version -- 0.723
+
+(+2%) 对比赛中的每个角色使用的英雄添加onehot的roles特征
