@@ -4,11 +4,13 @@ import lightgbm as lgb
 import os
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
+from hero_feats import *
 
 
 rootdir = "../dota-2-prediction"
 train_path = os.path.join(rootdir, "train.csv")
 test_path = os.path.join(rootdir, "test.csv")
+hero_path = os.path.join(rootdir, "hero_names.json")
 
 train_dt = pd.read_csv(train_path, header=0, sep=",")
 test_dt = pd.read_csv(test_path, header=0, sep=",")
@@ -53,6 +55,24 @@ def feature_preprocess(data):
     return np.concatenate([data, sub_features(data), sum_features(data), sum_sub_features(data), hero_features(data)], axis=1)
 
 
+def hero_roles_feat(data):
+    hero_attr_md = hero_attrs(hero_path)
+    id_map_feats = hero_attr_md.make_feat()
+
+    #hero_feats = np.zeros((data.shape[0], 24*10), dtype=float)
+    #hero_feats = np.zeros((data.shape[0], 23*10), dtype=float)
+    hero_feats = np.zeros((data.shape[0], 9*10), dtype=float)
+    for i in range(data.shape[0]):
+        for j in range(10):
+            hero_idx = data[i,1+j*8]
+            #hero_feats[i,j*24:(j+1)*24] = id_map_feats[hero_idx]
+            #hero_feats[i,j*23:(j+1)*23] = np.concatenate((id_map_feats[hero_idx][:2], id_map_feats[hero_idx][3:]))
+            hero_feats[i,j*9:(j+1)*9] = id_map_feats[hero_idx][15:]
+
+    #print("before add hero attrs: ", data.shape)
+    #print("after add hero attrs: ", data.shape)
+    return np.concatenate((data,hero_feats), axis=1)
+
 def get_reverse_x(X):
     tx = X.copy()
     for i in range(tx.shape[0]):
@@ -96,10 +116,12 @@ def load_data(path, sep=",", test=False):
     data_arr = data.values
     #print(data_arr.shape, data_arr[:3])
     if test:
+        data_arr = hero_roles_feat(data_arr)
         return feature_preprocess(data_arr)
     X = data_arr[:,:-1]
     Y = data_arr[:,-1]
     X = np.concatenate([X, get_reverse_x(X)], axis=0)
+    X = hero_roles_feat(X)
     Y = np.concatenate([Y, get_reverse_y(Y)], axis=0)
     return (feature_preprocess(X),Y)
 
@@ -138,6 +160,7 @@ def raw_feats_all():
     print(auc_result)
 
     print('Feature importances:', list(model.feature_importances_))
+    print('hero attrs feature importances: ', list(model.feature_importances_)[101:191])
 
     print('Ploting feature importance...')
     ax = lgb.plot_importance(model, max_num_features=20)
