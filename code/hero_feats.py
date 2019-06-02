@@ -1,6 +1,7 @@
 import json
 import numpy as np
 
+
 # id: attack_type; roles;
 #    base_armor; base_mr; base_attack_min; base_attack_max; base_str; base_agi; base_int
 #    str_gain; agi_gain; int_gain; attack_range; projectile_speed; attack_rate; move_speed
@@ -8,8 +9,6 @@ import numpy as np
 
 # these 4 is useless: base_health; base_health_regen; base_mana; base_mana_regen
 # useless feature: base_armor
-
-path = "../dota-2-prediction/hero_names.json"
 
 
 class HeroAttrs:
@@ -83,12 +82,32 @@ class HeroAttrs:
                 else:
                     feat_vector[idx] = v
             feats[hid] = feat_vector
-        # print(feats[1])
         return feats
 
 
+def hero_roles_feat(data, hero_path, show=False):
+    hero_attr_md = HeroAttrs(hero_path)
+    id_map_feats = hero_attr_md.make_feat()
+    
+    # 尝试了不同的方案
+    # hero_feats = np.zeros((data.shape[0], 24*10), dtype=float)
+    # hero_feats = np.zeros((data.shape[0], 23*10), dtype=float)
+    hero_feats = np.zeros((data.shape[0], 9 * 10), dtype=float)
+    for i in range(data.shape[0]):
+        for j in range(10):
+            hero_idx = data[i, 1 + j * 8]
+            # 尝试了不同的方案
+            # hero_feats[i,j*24:(j+1)*24] = id_map_feats[hero_idx]
+            # hero_feats[i,j*23:(j+1)*23] = np.concatenate((id_map_feats[hero_idx][:2], id_map_feats[hero_idx][3:]))
+            hero_feats[i, j * 9:(j + 1) * 9] = id_map_feats[hero_idx][15:]
+    
+    if show:
+        print("before add hero attrs: ", data.shape)
+        print("after add hero attrs: ", data.shape)
+    return np.concatenate((data, hero_feats), axis=1)
+
+
 if __name__ == "__main__":
+    path = "../dota-2-prediction/hero_names.json"
     md = HeroAttrs(path)
-    # md.analyse()
-    # print(len(md.feats_list))
     print(md.make_feat())
